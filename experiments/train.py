@@ -10,8 +10,8 @@ sys.path.append('../')
 sys.path.append('../../')
 sys.path.append('../../../')
 
-import maddpg.common.tf_util as U
-from maddpg.trainer.maddpg import MADDPGAgentTrainer
+import m3ddpg.common.tf_util as U
+from m3ddpg.trainer.m3ddpg import M3DDPGAgentTrainer
 import tensorflow.contrib.layers as layers
 
 def parse_args():
@@ -74,7 +74,7 @@ def make_env(scenario_name, arglist, benchmark=False):
 def get_trainers(env, num_adversaries, obs_shape_n, arglist):
     trainers = []
     model = mlp_model
-    trainer = MADDPGAgentTrainer
+    trainer = M3DDPGAgentTrainer
     for i in range(num_adversaries):
         print("{} bad agents".format(i))
         policy_name = arglist.bad_policy
