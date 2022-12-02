@@ -191,41 +191,41 @@ def train(arglist):
                     loss = agent.update(trainers, train_step)
 
             # save model, display training output
-            if terminal and (len(episode_rewards) % arglist.save_rate == 0):
-                U.save_state(arglist.save_dir, global_step = len(episode_rewards), saver=saver)
-                # print statement depends on whether or not there are adversaries
-                if num_adversaries == 0:
-                    print("steps: {}, episodes: {}, mean episode reward: {}, time: {}".format(
-                        train_step, len(episode_rewards), np.mean(episode_rewards[-arglist.save_rate:]), round(time.time()-t_start, 3)))
-                else:
-                    print("{} vs {} steps: {}, episodes: {}, mean episode reward: {}, agent episode reward: {}, time: {}".format(arglist.bad_policy, arglist.good_policy,
-                        train_step, len(episode_rewards), np.mean(episode_rewards[-arglist.save_rate:]),
-                        [np.mean(rew[-arglist.save_rate:]) for rew in agent_rewards], round(time.time()-t_start, 3)))
-                t_start = time.time()
-                # Keep track of final episode reward
-                final_ep_rewards.append(np.mean(episode_rewards[-arglist.save_rate:]))
-                for rew in agent_rewards:
-                    final_ep_ag_rewards.append(np.mean(rew[-arglist.save_rate:]))
+            # if terminal and (len(episode_rewards) % arglist.save_rate == 0):
+            #     U.save_state(arglist.save_dir, global_step = len(episode_rewards), saver=saver)
+            #     # print statement depends on whether or not there are adversaries
+            #     if num_adversaries == 0:
+            #         print("steps: {}, episodes: {}, mean episode reward: {}, time: {}".format(
+            #             train_step, len(episode_rewards), np.mean(episode_rewards[-arglist.save_rate:]), round(time.time()-t_start, 3)))
+            #     else:
+            #         print("{} vs {} steps: {}, episodes: {}, mean episode reward: {}, agent episode reward: {}, time: {}".format(arglist.bad_policy, arglist.good_policy,
+            #             train_step, len(episode_rewards), np.mean(episode_rewards[-arglist.save_rate:]),
+            #             [np.mean(rew[-arglist.save_rate:]) for rew in agent_rewards], round(time.time()-t_start, 3)))
+            #     t_start = time.time()
+            #     # Keep track of final episode reward
+            #     final_ep_rewards.append(np.mean(episode_rewards[-arglist.save_rate:]))
+            #     for rew in agent_rewards:
+            #         final_ep_ag_rewards.append(np.mean(rew[-arglist.save_rate:]))
 
             # saves final episode reward for plotting training curve later
-            if len(episode_rewards) > arglist.num_episodes:
-                suffix = '_test.pkl' if arglist.test else '.pkl'
-                rew_file_name = arglist.plots_dir + arglist.exp_name + '_rewards' + suffix
-                agrew_file_name = arglist.plots_dir + arglist.exp_name + '_agrewards' + suffix
+            # if len(episode_rewards) > arglist.num_episodes:
+            #     suffix = '_test.pkl' if arglist.test else '.pkl'
+            #     rew_file_name = arglist.plots_dir + arglist.exp_name + '_rewards' + suffix
+            #     agrew_file_name = arglist.plots_dir + arglist.exp_name + '_agrewards' + suffix
 
-                if not os.path.exists(os.path.dirname(rew_file_name)):
-                    try:
-                        os.makedirs(os.path.dirname(rew_file_name))
-                    except OSError as exc:
-                        if exc.errno != errno.EEXIST:
-                            raise
+            #     if not os.path.exists(os.path.dirname(rew_file_name)):
+            #         try:
+            #             os.makedirs(os.path.dirname(rew_file_name))
+            #         except OSError as exc:
+            #             if exc.errno != errno.EEXIST:
+            #                 raise
 
-                with open(rew_file_name, 'wb') as fp:
-                    pickle.dump(final_ep_rewards, fp)
-                with open(agrew_file_name, 'wb') as fp:
-                    pickle.dump(final_ep_ag_rewards, fp)
-                print('...Finished total of {} episodes.'.format(len(episode_rewards)))
-                break
+            #     with open(rew_file_name, 'wb') as fp:
+            #         pickle.dump(final_ep_rewards, fp)
+            #     with open(agrew_file_name, 'wb') as fp:
+            #         pickle.dump(final_ep_ag_rewards, fp)
+            #     print('...Finished total of {} episodes.'.format(len(episode_rewards)))
+            #     break
 
 if __name__ == '__main__':
     arglist = parse_args()
