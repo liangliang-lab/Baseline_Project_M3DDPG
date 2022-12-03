@@ -37,6 +37,58 @@ def parse_args():
     parser.add_argument("--load-name", type=str, default="", help="name of which training state and model are loaded, leave blank to load seperately")
     parser.add_argument("--load-good", type=str, default="", help="which good policy to load")
     parser.add_argument("--load-bad", type=str, default="", help="which bad policy to load")
+    ##### Noise for observation
+    ## Gaussian
+    parser.add_argument("--obs-gaus-std", type=float, help="mean of Gaussian noise for observation")
+    parser.add_argument("--obs-gaus-mean", type=float, help="mean of Gaussian noise for observation")
+    ## Uniform
+    parser.add_argument("--obs-unif-high", type=float, help="Upper bound of the uniform interval of the noise for observation")
+    parser.add_argument("--obs-unif-low", type=float, help="Lower bound of the uniform interval of the noise for observation")
+    ## Laplace
+    parser.add_argument("--obs-laplace-mean", type=float, help="mean of Laplace noise for observation")
+    parser.add_argument("--obs-laplace-decay", type=float, help="decay of Laplace noise for observation")
+    ## Beta
+    parser.add_argument("--obs-beta-a", type=float, help="a of beta noise for observation")
+    parser.add_argument("--obs-beta-b", type=float, help="b of beta noise for observation")
+    ## Gamma
+    parser.add_argument("--obs-gamma-shape", type=float, help="shape of gamma noise for observation")
+    parser.add_argument("--obs-gamma-scale", type=float, help="scale of gamma noise for observation")
+    ## Gumbel
+    parser.add_argument("--obs-gumbel-mode", type=float,help="mode of gumbel noise for observation")
+    parser.add_argument("--obs-gumbel-scale", type=float, help="scale of gumbel noise for observation")
+    ## Wald
+    parser.add_argument("--obs-wald-mean", type=float, help="mean of wald noise for observation")
+    parser.add_argument("--obs-wald-scale", type=float, help="scale of wald noise for observation")
+    ## logistic
+    parser.add_argument("--obs-logistic-mean", type=float, help="mean of logistic noise for observation")
+    parser.add_argument("--obs-logistic-scale", type=float, help="scale of logistic noise for observation")
+    ##### Add different noise for actions
+    ## Gaussian
+    parser.add_argument("--act-gaus-std", type=float, help="std of Gaussian noise for action")
+    parser.add_argument("--act-gaus-mean", type=float, help="mean of Gaussian noise level for action")
+    ## Uniform
+    parser.add_argument("--act-unif-high", type=float, help="Upper bound of the uniform interval of the noise for action")
+    parser.add_argument("--act-unif-low", type=float, help="Lower bound of the uniform interval of the noise for action")
+    ## Laplace
+    parser.add_argument("--act-laplace-mean", type=float, help="mean of Laplace noise for action")
+    parser.add_argument("--act-laplace-decay", type=float, help="decay of Laplace noise for action")
+    ## Beta
+    parser.add_argument("--act-beta-a", type=float, help="a of beta noise for action")
+    parser.add_argument("--act-beta-b", type=float, help="b of beta noise for action")
+    ## Gamma
+    parser.add_argument("--act-gamma-shape", type=float, help="shape of gamma noise for action")
+    parser.add_argument("--act-gamma-scale", type=float, help="scale of gamma noise for action")
+    ## Gumbel
+    parser.add_argument("--act-gumbel-mode", type=float,help="mode of gumbel noise for action")
+    parser.add_argument("--act-gumbel-scale", type=float, help="scale of gumbel noise for action")
+    ## Wald
+    parser.add_argument("--act-wald-mean", type=float, help="mean of wald noise for action")
+    parser.add_argument("--act-wald-scale", type=float, help="scale of wald noise for action")
+    ## logistic
+    parser.add_argument("--act-logistic-mean", type=float, help="mean of logistic noise for action")
+    parser.add_argument("--act-logistic-scale", type=float, help="scale of logistic noise for action")
+    
+    
     # Evaluation
     parser.add_argument("--test", action="store_true", default=False)
     parser.add_argument("--restore", action="store_true", default=False)
@@ -135,12 +187,64 @@ def train(arglist):
         train_step = 0
         t_start = time.time()
 
+        def add_noise_action(arglist):
+            if arglist.act_gaus_mean is not None and arglist.act_gaus_std is not None:
+               return np.random.normal, arglist.act_gaus_mean, arglist.act_gaus_std
+            if arglist.act_unif_low is not None and arglist.act_unif_high is not None:
+               return np.random.uniform, arglist.act_unif_low, arglist.act_unif_high
+            if arglist.act_laplace_mean is not None and arglist.act_laplace_decay is not None:
+               return np.random.laplace, arglist.act_laplace_mean, arglist.act_laplace_decay
+            if arglist.act_beta_a is not None and arglist.act_beta_b is not None:
+               return np.random.beta, arglist.act_beta_a, arglist.act_beta_b
+            if arglist.act_gamma_shape is not None and arglist.act_gamma_scale is not None:
+               return np.random.gamma, arglist.act_gamma_shape, arglist.act_gamma_scale
+            if arglist.act_gumbel_mode is not None and arglist.act_gumbel_scale is not None:
+               return np.random.gumbel, arglist.act_gumbel_mode, arglist.act_gumbel_scale
+            if arglist.act_wald_mean is not None and arglist.act_wald_scale is not None:
+               return np.random.wald, arglist.act_wald_mean, arglist.act_wald_scale
+            if arglist.act_logistic_mean is not None and arglist.act_logistic_scale is not None:
+               return np.random.logistic, arglist.act_logistic_mean, arglist.act_logistic_scale
+            
+            return None, None, None
+
+        def add_noise_observation(arglist):
+            if arglist.obs_gaus_mean is not None and arglist.obs_gaus_std is not None:
+               return np.random.normal, arglist.obs_gaus_mean, arglist.obs_gaus_std
+            if arglist.obs_unif_low is not None and arglist.obs_unif_high is not None:
+               return np.random.uniform, arglist.obs_unif_low, arglist.obs_unif_high
+            if arglist.obs_laplace_mean is not None and arglist.obs_laplace_decay is not None:
+               return np.random.laplace, arglist.obs_laplace_mean, arglist.obs_laplace_decay 
+            if arglist.obs_beta_a is not None and arglist.obs_beta_b is not None:
+               return np.random.beta, arglist.obs_beta_a, arglist.obs_beta_b
+            if arglist.obs_gamma_shape is not None and arglist.obs_gamma_scale is not None:
+               return np.random.gamma, arglist.obs_gamma_shape, arglist.obs_gamma_scale
+            if arglist.obs_gumbel_mode is not None and arglist.obs_gumbel_scale is not None:
+               return np.random.gumbel, arglist.obs_gumbel_mode, arglist.obs_gumbel_scale
+            if arglist.obs_wald_mean is not None and arglist.obs_wald_scale is not None:
+               return np.random.wald, arglist.obs_wald_mean, arglist.obs_wald_scale
+            if arglist.obs_logistic_mean is not None and arglist.obs_logistic_scale is not None:
+               return np.random.logistic, arglist.obs_logistic_mean, arglist.obs_logistic_scale
+
+            return None, None, None
+
         print('Starting iterations...')
         while True:
             # get action
             action_n = [agent.action(obs) for agent, obs in zip(trainers,obs_n)]
+
+            # add noise in actions
+            act_noise_fun, act_noise_par1, act_noise_par2 = add_noise_action(arglist)
+            if act_noise_fun is not None and act_noise_par1 is not None and act_noise_par2 is not None:
+                for i, act in enumerate(action_n):
+                    action_n[i] = act + act_noise_fun(act_noise_par1, act_noise_par2, act.shape)
+            
             # environment step
             new_obs_n, rew_n, done_n, info_n = env.step(action_n)
+            obs_noise_fun, obs_noise_par1, obs_noise_par2 = add_noise_observation(arglist)
+            if obs_noise_fun is not None and obs_noise_par1 is not None and obs_noise_par2 is not None:
+                for i, obs_i in enumerate(new_obs_n):
+                    new_obs_n[i] = obs_i + obs_noise_fun(obs_noise_par1, obs_noise_par2)
+
             episode_step += 1
             done = all(done_n)
             terminal = (episode_step >= arglist.max_episode_len)
